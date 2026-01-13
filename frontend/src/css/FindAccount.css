@@ -1,0 +1,245 @@
+/* FindAccount.css: 아이디/비밀번호 찾기 화면 전용 스타일 시트 */
+
+.recovery-screen-inner {
+    width: 100%;
+    min-height: calc(100vh - 80px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    position: relative;
+    z-index: 2;
+}
+
+/* 카드형 메인 컨테이너 */
+.recovery-card {
+    display: flex;
+    width: 1100px;
+    height: 700px;
+    background: #ffffff;
+    border-radius: 40px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+    animation: fadeInScale 0.6s ease-out;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* --- 왼쪽: 폼 영역 --- */
+.recovery-left {
+    flex: 1;
+    padding: 60px 80px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+/* 로그인으로 돌아가기 버튼 */
+.back-login-button {
+    position: absolute;
+    top: 40px;
+    left: 80px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: none;
+    color: #0d84d9;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.back-login-button:hover {
+    transform: translateX(-4px);
+}
+
+.back-icon {
+    width: 20px;
+    height: 20px;
+}
+
+/* 헤더 텍스트 */
+.recovery-header {
+    margin-top: 60px;
+    margin-bottom: 30px;
+}
+
+.recovery-logo-text {
+    font-family: "Audiowide", cursive;
+    font-size: 42px;
+    color: #0d84d9;
+    margin-bottom: 8px;
+}
+
+.recovery-subtitle {
+    font-size: 16px;
+    color: #666;
+}
+
+/* 탭 버튼 스타일링 */
+.recovery-tabs {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 30px;
+}
+
+.tab-button {
+    flex: 1;
+    height: 46px;
+    border-radius: 23px;
+    border: 1px solid #0d84d9;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+/* 비활성 탭: 배경 투명, 테두리만 */
+.tab-button:not(.active) {
+    background: #fff;
+    color: #0d84d9;
+}
+
+/* 활성 탭: 브랜드 컬러 배경 */
+.tab-button.active {
+    background: #0d84d9;
+    color: #fff;
+}
+
+/* 입력 폼 스타일: 전체 높이를 고정하여 버튼 위치 유지 */
+.recovery-form {
+    display: flex;
+    flex-direction: column;
+    height: 420px;
+    /* 폼 전체 높이 고정 */
+    justify-content: space-between;
+    /* 요소들을 상하 끝으로 배치하여 버튼 위치 고정 */
+    margin-top: -10px;
+    /* 입력 폼 영역을 좀 더 위로 올림 */
+}
+
+/* 입력 필드들이 담기는 영역 */
+.recovery-inputs-area {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    height: 80px;
+    /* 개별 필드 높이 고정 */
+}
+
+.input-group label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+}
+
+.input-group input {
+    height: 48px;
+    padding: 0 20px;
+    background: #fdfdfd;
+    border: 1px solid #e1e8ed;
+    border-radius: 12px;
+    font-size: 15px;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.input-group input:focus {
+    border-color: #0d84d9;
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(13, 132, 217, 0.1);
+}
+
+/* 제출 버튼 */
+.recovery-submit-button {
+    height: 54px;
+    background: #0d84d9;
+    color: #fff;
+    border: none;
+    border-radius: 15px;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: all 0.2s;
+}
+
+.recovery-submit-button:hover {
+    background: #0b72bb;
+    transform: translateY(-2px);
+}
+
+/* --- 오른쪽: 슬라이드쇼 영역 --- */
+.recovery-right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.recovery-slideshow-container {
+    width: 85%;
+    height: 85%;
+    position: relative;
+}
+
+.recovery-slide-img {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.15));
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+}
+
+.recovery-slide-img.active {
+    opacity: 1;
+}
+
+/* --- 반응형 레이아웃 --- */
+@media (max-width: 1150px) {
+    .recovery-card {
+        width: 95%;
+        height: auto;
+        min-height: 600px;
+    }
+}
+
+@media (max-width: 900px) {
+    .recovery-card {
+        flex-direction: column;
+    }
+
+    .recovery-left {
+        padding: 60px 40px;
+    }
+
+    .recovery-right {
+        display: none;
+    }
+
+    .back-login-button {
+        left: 40px;
+    }
+}
