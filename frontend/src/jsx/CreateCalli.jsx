@@ -4,6 +4,7 @@ import testImage1 from '../assets/slide1.png';
 import testImage2 from '../assets/slide2.png';
 import testImage3 from '../assets/slide3.png';
 import ImageModal from '../components/ImageModal';
+import ReviewModal from '../components/ReviewModal';
 
 
 export default function CreateCalli({
@@ -14,19 +15,19 @@ export default function CreateCalli({
     setFreeCredits,
     onAddToWishlist,
     onAddToHistory,
-    onGoToCharge
+    onGoToCharge,
+    onAddReview // New prop
 }) {
     const [text, setText] = useState('');
     const [styleInput, setStyleInput] = useState('');
     const [bgStyle, setBgStyle] = useState('');
-    const [selectedFastStyle, setSelectedFastStyle] = useState(null);
     const [selectedRatio, setSelectedRatio] = useState('1:1');
     const [isGenerating, setIsGenerating] = useState(false);
     const [generatedImage, setGeneratedImage] = useState(null); // 생성된 이미지 상태
     const [lastGeneratedText, setLastGeneratedText] = useState(''); // 마지막으로 생성한 텍스트
-    const [showTips, setShowTips] = useState(false); // 작성 팁 토글 상태
     const [previewModalOpen, setPreviewModalOpen] = useState(false);
     const [previewModalImage, setPreviewModalImage] = useState(null);
+    const [reviewModalOpen, setReviewModalOpen] = useState(false); // Review modal state
 
     const openPreviewModal = (imgSrc) => {
         setPreviewModalImage(imgSrc);
@@ -53,47 +54,29 @@ export default function CreateCalli({
     const testImages = [testImage1, testImage2, testImage3];
 
     const quickPhrases = ["사랑합니다", "행복한 하루", "감사합니다", "축하합니다", "새해 복 많이 받으세요"];
-    const ratios = ["1:1", "2:3", "3:2", "3:4", "4:3"];
 
-    // ... (fastStyles 생략) ...
-    const fastStyles = [
-        {
-            id: 1,
-            title: "힘있고 강렬한",
-            desc: "굵고 힘있는 붓터치, 강렬한 느낌",
-            presetStyle: "굵고 힘있는 붓터치, 강렬한 느낌",
-            presetBg: "검은색 배경"
-        },
-        {
-            id: 2,
-            title: "우아하고 부드러운",
-            desc: "가늘고 흐르는 듯한 곡선, 우아한 느낌",
-            presetStyle: "가늘고 흐르는 듯한 곡선, 우아한 느낌",
-            presetBg: "밝은 베이지색 배경"
-        },
-        {
-            id: 3,
-            title: "활기차고 경쾌한",
-            desc: "튀는 듯한 필체, 생동감 있는 느낌",
-            presetStyle: "튀는 듯한 필체, 생동감 있는 느낌",
-            presetBg: "화사한 파스텔 배경"
-        },
-        {
-            id: 4,
-            title: "고전적이고 전통적",
-            desc: "먹의 번짐을 살린 전통 서체 스타일",
-            presetStyle: "먹의 번짐을 살린 전통 서예 스타일",
-            presetBg: "한지 질감의 배경"
-        }
+    // 캘리그라피 스타일 추천 태그
+    const stylePresets = [
+        "굵고 힘있는 붓터치, 강렬한 느낌",
+        "가늘고 흐르는 듯한 곡선, 우아한 느낌",
+        "튀는 듯한 필체, 생동감 있는 느낌",
+        "먹의 번짐을 살린 전통 서예 스타일"
     ];
 
-    const handleQuickPhrase = (phrase) => setText(phrase);
+    // 배경 스타일 추천 태그
+    const bgPresets = [
+        "검은색 배경",
+        "밝은 베이지색 배경",
+        "화사한 파스텔 배경",
+        "한지 질감의 배경"
+    ];
 
-    const handleFastStyleSelect = (style) => {
-        setSelectedFastStyle(style.id);
-        setStyleInput(style.presetStyle);
-        setBgStyle(style.presetBg);
-    };
+    const ratios = ["1:1", "2:3", "3:2", "3:4", "4:3"];
+
+    const handleQuickPhrase = (phrase) => setText(phrase);
+    const handleStylePreset = (preset) => setStyleInput(preset);
+    const handleBgPreset = (preset) => setBgStyle(preset);
+
 
     const handleGenerate = () => {
         // 무료 횟수 차감 또는 토큰 차감 로직 (App에서 받은 props 사용)
@@ -127,7 +110,7 @@ export default function CreateCalli({
                 style: styleInput,
                 bg: bgStyle,
                 ratio: selectedRatio,
-                fastStyleId: selectedFastStyle // 스타일 ID 저장
+                // fastStyleId removed
             };
             const newHistory = [newHistoryItem, ...history];
             setHistory(newHistory);
@@ -154,6 +137,24 @@ export default function CreateCalli({
             onAddToHistory(generatedImage, text);
 
             alert("다운로드가 완료되었습니다! 마이페이지 > 다운로드 내역에서 확인하세요.");
+
+            // 첫 다운로드 체크 및 리뷰 모달 트리거
+            const hasReviewed = localStorage.getItem('review_prompt_completed');
+            if (!hasReviewed) {
+                setTimeout(() => {
+                    setReviewModalOpen(true);
+                }, 1000); // 1초 뒤에 자연스럽게 뜸
+            }
+        }
+    };
+
+    const handleReviewSubmit = (reviewData) => {
+        if (onAddReview) {
+            onAddReview(reviewData);
+            // setTokenCount(prev => prev + 5); // 보상 제거
+            localStorage.setItem('review_prompt_completed', 'true'); // 완료 표시
+            setReviewModalOpen(false);
+            alert("소중한 후기 감사합니다! 🎉");
         }
     };
 
@@ -185,7 +186,7 @@ export default function CreateCalli({
         setStyleInput(item.style || '');
         setBgStyle(item.bg || '');
         setSelectedRatio(item.ratio || '1:1');
-        setSelectedFastStyle(item.fastStyleId || null); // 스타일 ID 복원
+        // setSelectedFastStyle removed
     };
 
     // 버튼 텍스트 결정 로직
@@ -251,57 +252,19 @@ export default function CreateCalli({
                             <span className="tooltip">ⓘ</span>
                             <span className="limit">{styleInput.length}/100</span>
                         </div>
-                        <input
-                            type="text"
+                        <textarea
                             className="style-input"
                             placeholder="예: 힘있고 강렬한 느낌, 굵은 붓터치"
                             value={styleInput}
                             maxLength={100}
                             onChange={(e) => setStyleInput(e.target.value)}
                         />
+                        <div className="quick-tags">
+                            {stylePresets.map(preset => (
+                                <button key={preset} className="tag-btn" onClick={() => handleStylePreset(preset)}>{preset}</button>
+                            ))}
+                        </div>
                     </div>
-
-                    {!showTips ? (
-                        <div className="fast-style-section">
-                            <div className="section-header">
-                                <div className="section-label">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-                                    <span>빠른 스타일 선택</span>
-                                </div>
-                                <button className="toggle-btn" onClick={() => setShowTips(true)}>예시 숨기기</button>
-                            </div>
-                            <div className="style-cards-grid">
-                                {fastStyles.map(style => (
-                                    <div
-                                        key={style.id}
-                                        className={`style-card ${selectedFastStyle === style.id ? 'active' : ''}`}
-                                        onClick={() => handleFastStyleSelect(style)}
-                                    >
-                                        <h3>{style.title}</h3>
-                                        <p>{style.desc}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="writing-tips-section">
-                            <div className="section-header">
-                                <div className="section-label">
-                                    <span className="info-icon">ⓘ</span>
-                                    <span className="tips-icon">💡</span>
-                                    <span>작성 팁</span>
-                                </div>
-                                <button className="toggle-btn" onClick={() => setShowTips(false)}>예시 보기</button>
-                            </div>
-                            <div className="tips-box">
-                                <ul>
-                                    <li>느낌을 구체적으로 표현하세요</li>
-                                    <li>붓터치 스타일을 언급해보세요</li>
-                                    <li>전체적인 분위기를 추가하세요</li>
-                                </ul>
-                            </div>
-                        </div>
-                    )}
 
                     <div className="input-section">
                         <div className="section-label">
@@ -310,14 +273,18 @@ export default function CreateCalli({
                             <span className="tooltip">ⓘ</span>
                             <span className="limit">{bgStyle.length}/100</span>
                         </div>
-                        <input
-                            type="text"
+                        <textarea
                             className="bg-input"
                             placeholder="예: 검은색, 먹이 튄 느낌, 한지 질감"
                             value={bgStyle}
                             maxLength={100}
                             onChange={(e) => setBgStyle(e.target.value)}
                         />
+                        <div className="quick-tags">
+                            {bgPresets.map(preset => (
+                                <button key={preset} className="tag-btn" onClick={() => handleBgPreset(preset)}>{preset}</button>
+                            ))}
+                        </div>
                     </div>
 
                     <div className="ratio-section">
@@ -340,7 +307,6 @@ export default function CreateCalli({
                         disabled={!text.trim() || !styleInput.trim() || !bgStyle.trim() || isGenerating}
                         onClick={handleGenerate}
                     >
-                        <span className="icon">✨</span>
                         <span>{getButtonText()}</span>
                     </button>
                 </div>
@@ -412,6 +378,18 @@ export default function CreateCalli({
                     isOpen={previewModalOpen}
                     onClose={closePreviewModal}
                     imageUrl={previewModalImage}
+                    ratio={selectedRatio} // 비율 전달
+                />
+
+                {/* Review Modal */}
+                <ReviewModal
+                    isOpen={reviewModalOpen}
+                    onClose={() => setReviewModalOpen(false)}
+                    onSubmit={handleReviewSubmit}
+                    onNeverShowAgain={() => {
+                        setReviewModalOpen(false);
+                        localStorage.setItem('review_prompt_completed', 'true');
+                    }}
                 />
             </div>
         </div>

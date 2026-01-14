@@ -10,7 +10,7 @@ import slide3 from '../assets/slide3.png';
  * 메인 화면 컴포넌트
  * @param {Function} onStart - '지금 시작하기' 버튼 클릭 시 실행될 함수
  */
-export default function MainScreen({ onStart }) {
+export default function MainScreen({ onStart, reviews }) {
     // 현재 표시 중인 슬라이드 인덱스 상태 관리
     const [currentSlide, setCurrentSlide] = useState(0);
     const slides = [slide1, slide2, slide3];
@@ -54,16 +54,25 @@ export default function MainScreen({ onStart }) {
         return () => targets.forEach((target) => observer.unobserve(target));
     }, []);
 
-    // Marquee 효과를 위해 리뷰 데이터 복제 (최소 2세트 필요)
-    const originalReviews = [
-        { initial: "형", name: "형*호", stars: "★★★★★", text: "모바일 청첩장 문구를 만들려고 했는대, 정말 감성적이고 예쁜 캘리그라피가 나왔어요! 직접 작가님께 의뢰하는 것보다 훨씬 빠르고 간편했습니다!", color: "avatar-blue" },
-        { initial: "이", name: "이*민", stars: "★★★★★", text: "카페 메뉴판에 사용할 캘리그라피를 찾고 있었는데, 여러 스타일을 직접 비교해보고 선택할 수 있어서 너무 좋았어요. 가성비 최고!", color: "avatar-pink" },
-        { initial: "박", name: "박*연", stars: "★★★★☆", text: "SNS 프로필 이미지로 사용하려고 만들었는데, 정말 만족한 결과였어요! 제가 원하는 스타일로 나와서 신기했습니다!", color: "avatar-green" },
-        { initial: "김", name: "김*수", stars: "★★★★★", text: "부모님 생신 축하 문구를 만들어 드렸는데 너무 좋아하시네요. 따뜻한 느낌의 붓글씨 스타일이 정말 마음에 듭니다.", color: "avatar-blue" },
-        { initial: "최", name: "최*영", stars: "★★★★★", text: "로고 디자인 아이데이션 할 때 정말 유용해요. 다양한 시안을 바로바로 볼 수 있어서 시간 절약이 많이 됩니다.", color: "avatar-green" }
-    ];
-    // 무한 스크롤을 위해 데이터 2배로 뻥튀기
-    const marqueeReviews = [...originalReviews, ...originalReviews];
+    // Marquee 효과를 위해 리뷰 데이터 처리
+    // 1. 4점 이상 필터링
+    const bestReviews = reviews ? reviews.filter(r => r.rating >= 4) : [];
+
+    // 2. 무한 스크롤을 위해 데이터 충분히 확보 (최소 5개 확보 후 2배 뻥튀기)
+    // 데이터가 적으면 반복해서 채움
+    let displayReviews = [...bestReviews];
+    if (displayReviews.length > 0) {
+        while (displayReviews.length < 5) {
+            displayReviews = [...displayReviews, ...bestReviews];
+        }
+    }
+
+    const marqueeReviews = [...displayReviews, ...displayReviews];
+
+    // 별점 렌더링 헬퍼
+    const renderStars = (rating) => {
+        return "★".repeat(rating) + "☆".repeat(5 - rating);
+    };
 
 
     // 섹션 이동 핸들러 (고정 헤더 높이를 고려한 스크롤)
@@ -226,7 +235,7 @@ export default function MainScreen({ onStart }) {
                                 <div className="review-card marquee-item" key={index}>
                                     <div className="user-info">
                                         <div className={`user-avatar ${review.color}`}>{review.initial}</div>
-                                        <div><div className="username">{review.name}</div><div className="stars">{review.stars}</div></div>
+                                        <div><div className="username">{review.name}</div><div className="stars">{renderStars(review.rating)}</div></div>
                                     </div>
                                     <p className="review-text">"{review.text}"</p>
                                 </div>

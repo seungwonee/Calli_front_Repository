@@ -56,6 +56,15 @@ const createMockWishlist = () => {
   return list;
 };
 
+// 임시 리뷰 데이터 생성 함수 - Global로 이동
+const createMockReviews = () => [
+  { id: 1, initial: "형", name: "형*호", rating: 5, text: "모바일 청첩장 문구를 만들려고 했는대, 정말 감성적이고 예쁜 캘리그라피가 나왔어요! 직접 작가님께 의뢰하는 것보다 훨씬 빠르고 간편했습니다!", color: "avatar-blue", createdAt: new Date().toISOString() },
+  { id: 2, initial: "이", name: "이*민", rating: 5, text: "카페 메뉴판에 사용할 캘리그라피를 찾고 있었는데, 여러 스타일을 직접 비교해보고 선택할 수 있어서 너무 좋았어요. 가성비 최고!", color: "avatar-pink", createdAt: new Date().toISOString() },
+  { id: 3, initial: "박", name: "박*연", rating: 4, text: "SNS 프로필 이미지로 사용하려고 만들었는데, 정말 만족한 결과였어요! 제가 원하는 스타일로 나와서 신기했습니다!", color: "avatar-green", createdAt: new Date().toISOString() },
+  { id: 4, initial: "김", name: "김*수", rating: 5, text: "부모님 생신 축하 문구를 만들어 드렸는데 너무 좋아하시네요. 따뜻한 느낌의 붓글씨 스타일이 정말 마음에 듭니다.", color: "avatar-blue", createdAt: new Date().toISOString() },
+  { id: 5, initial: "최", name: "최*영", rating: 5, text: "로고 디자인 아이데이션 할 때 정말 유용해요. 다양한 시안을 바로바로 볼 수 있어서 시간 절약이 많이 됩니다.", color: "avatar-green", createdAt: new Date().toISOString() }
+];
+
 // Wrapper for SharedView to extract params
 const SharedViewWrapper = ({ onGoHome }) => {
   const { id } = useParams();
@@ -82,11 +91,17 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // 페이지 이동 시 최상단 스크롤
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const [isLoggedIn, setIsLoggedIn] = useState(false); // 로그인 상태
   const [userName, setUserName] = useState(''); // 사용자 이름
   const [userEmail, setUserEmail] = useState(''); // 사용자 이메일
+  const [userPhone, setUserPhone] = useState('010-0000-0000'); // 사용자 휴대폰 번호
   const [showWelcomeModal, setShowWelcomeModal] = useState(false); // 환영 모달 표시 여부
   const [myPageKey, setMyPageKey] = useState(0); // 마이페이지 강제 리프레시용 키
 
@@ -96,6 +111,13 @@ function App() {
   const [wishlistItems, setWishlistItems] = useState([]); // 기본 빈 배열 (신규 회원)
   const [historyList, setHistoryList] = useState([]); // 기본 빈 배열 (신규 회원)
   const [paymentHistory, setPaymentHistory] = useState([]); // 결제 내역 전역 관리
+
+  // 리뷰 데이터 상태 관리
+  const [reviews, setReviews] = useState(() => {
+    const saved = localStorage.getItem('app_reviews_v1');
+    return saved ? JSON.parse(saved) : createMockReviews();
+  });
+
   const [adminView, setAdminView] = useState('inquiry'); // Admin current view
 
   // [보안 기능] 이미지 우클릭/드래그 방지 및 캡쳐/저장 단축키 차단
@@ -169,7 +191,11 @@ function App() {
   }, []);
 
   const goToLogin = () => { navigate('/login'); setIsSidebarOpen(false); };
-  const goToMain = () => { navigate('/'); setIsSidebarOpen(false); };
+  const goToMain = () => {
+    navigate('/');
+    window.scrollTo(0, 0); // 최상단 이동
+    setIsSidebarOpen(false);
+  };
 
   const goToCreate = () => {
     if (!isLoggedIn) {
@@ -189,6 +215,7 @@ function App() {
     // 명수마을깡패 로직
     if (name === '명수마을깡패') {
       localStorage.removeItem('visited_user1');
+      localStorage.removeItem('review_prompt_completed'); // 테스트용: 후기 모달 리셋
 
       // [Reset Logic] 무료 3회, 토큰 0개, 히스토리/위시리스트 초기화
       setUserFreeDownloadCount(3);
@@ -196,6 +223,7 @@ function App() {
       setHistoryList([]);
       setWishlistItems([]);
       setUserEmail('test@example.com');
+      setUserPhone('010-1234-5678');
     } else {
       // 일반 유저 기본값
       setUserFreeDownloadCount(0);
@@ -204,6 +232,7 @@ function App() {
       setHistoryList([]);
       setWishlistItems([]);
       setUserEmail('이메일 없음');
+      setUserPhone('010-0000-0000');
     }
 
     setIsLoggedIn(true);
@@ -228,6 +257,7 @@ function App() {
     setUserName('');
     // replace: true를 사용하여 로그아웃 시 현재 페이지 기록을 메인으로 대체 (뒤로가기 시 다시 못 돌아오게 함)
     navigate('/', { replace: true });
+    window.scrollTo(0, 0); // 메인 화면 최상단으로 스크롤 이동
     setIsSidebarOpen(false);
     localStorage.removeItem('create_history');
   };
@@ -251,6 +281,12 @@ function App() {
     navigate('/mypage', { state: { view } });
     setMyPageKey(prev => prev + 1); // 키를 변경하여 컴포넌트 강제 리마운트 필요 시
     setIsSidebarOpen(false);
+  };
+
+  const handleProfileUpdate = (newData) => {
+    if (newData.name) setUserName(newData.name);
+    if (newData.email) setUserEmail(newData.email);
+    if (newData.phone) setUserPhone(newData.phone);
   };
 
   const handleInquiryClick = () => {
@@ -308,6 +344,35 @@ function App() {
       maxDownload: 3
     };
     setHistoryList(prev => [newItem, ...prev]);
+  };
+
+  const handleAddReview = (newReview) => {
+    let maskedName = '익명';
+    if (userName) {
+      if (userName.length === 2) {
+        maskedName = userName.charAt(0) + '*';
+      } else if (userName.length > 2) {
+        const first = userName.charAt(0);
+        const last = userName.charAt(userName.length - 1);
+        maskedName = first + '*' + last;
+      } else {
+        maskedName = userName;
+      }
+    }
+
+    const reviewWithMeta = {
+      ...newReview,
+      id: Date.now(),
+      initial: userName ? userName.charAt(0) : 'G', // Guest or Name
+      name: maskedName,
+      color: ['avatar-blue', 'avatar-pink', 'avatar-green'][Math.floor(Math.random() * 3)],
+      createdAt: new Date().toISOString()
+    };
+
+    const updatedReviews = [reviewWithMeta, ...reviews];
+    setReviews(updatedReviews);
+    localStorage.setItem('app_reviews_v1', JSON.stringify(updatedReviews));
+    return true;
   };
 
   // Derived state for visibility
@@ -377,7 +442,7 @@ function App() {
 
         <main className="screen-container">
           <Routes>
-            <Route path="/" element={<MainScreen onStart={goToCreate} onLogin={goToLogin} />} />
+            <Route path="/" element={<MainScreen onStart={goToCreate} onLogin={goToLogin} reviews={reviews} />} />
             <Route path="/login" element={<LoginScreen onGoHome={goToMain} onFindAccount={goToFindAccount} onSignUp={goToSignUp} onLoginSuccess={handleLoginSuccess} />} />
             <Route path="/find-account" element={<FindAccount onGoLogin={goToLogin} />} />
             <Route path="/signup" element={<SignUp onGoLogin={goToLogin} />} />
@@ -396,6 +461,8 @@ function App() {
                   key={myPageKey}
                   userName={userName}
                   userEmail={userEmail}
+                  userPhone={userPhone} // Pass userPhone
+                  onUpdateProfile={handleProfileUpdate} // Pass update handler
                   initialView={location.state?.view || 'dashboard'}
                   tokenCount={userTokenCount}
                   setTokenCount={setUserTokenCount}
@@ -419,9 +486,11 @@ function App() {
                   onAddToWishlist={addToWishlist}
                   onAddToHistory={addToHistory}
                   onGoToCharge={() => handleMyPageClick('charge')}
+                  onAddReview={handleAddReview}
                 />
               </ProtectedRoute>
             } />
+
             {/* Catch all redirect to main */}
             <Route path="*" element={<MainScreen onStart={goToCreate} onLogin={goToLogin} />} />
           </Routes>

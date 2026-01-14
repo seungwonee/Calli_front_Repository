@@ -87,7 +87,7 @@ export default function MyPageCharge({ onCancel, onChargeComplete, currentTokens
                 <div className="charge-header">
                     <h1 className="charge-title">토큰 충전소</h1>
                     <p className="charge-subtitle">원하는 만큼 토큰을 충전하고 다양한 캘리그라피를 만들어보세요!</p>
-                    <div className="current-balance" style={{ marginTop: '10px', fontSize: '15px', color: '#007aff', fontWeight: 'bold' }}>
+                    <div className="current-balance" style={{ marginTop: '10px', fontSize: '15px', color: '#6366F1', fontWeight: 'bold' }}>
                         현재 보유 토큰: {currentTokens}개
                     </div>
                 </div>

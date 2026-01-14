@@ -29,7 +29,7 @@
 /* 좌측 입력 카드: 내부 스크롤 허용 */
 .input-card {
     background: #fff;
-    border-radius: 24px;
+    /* border-radius: 24px; */
     padding: 24px 32px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
     border: 1px solid #edf1f5;
@@ -47,7 +47,7 @@
 
 .input-card::-webkit-scrollbar-thumb {
     background: #e1e8ed;
-    border-radius: 3px;
+    /* border-radius: 3px; */
 }
 
 .card-header {
@@ -140,7 +140,7 @@
     padding: 12px 16px;
     border: 1px solid #e5e7eb;
     /* Lighter border */
-    border-radius: 12px;
+    /* border-radius: 12px; */
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     /* shadow-sm */
     font-size: 14px;
@@ -188,20 +188,25 @@
 .style-input,
 .bg-input {
     width: 100%;
-    height: 60px;
+    height: 100px;
+    /* 100글자 정도 넉넉히 들어갈 높이 */
     padding: 12px 16px;
     border: 1px solid #e5e7eb;
-    border-radius: 12px;
+    /* border-radius: 12px; */
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     font-size: 14px;
+    font-family: inherit;
+    /* 폰트 통일 */
     outline: none;
     background: #fcfdfe;
+    resize: none;
+    /* 사용자 임의 조절 방지 */
 }
 
 /* 빠른 스타일 섹션 및 작성 팁 공통 스타일 */
 .fast-style-section,
 .writing-tips-section {
-    background: #fff9e6;
+    background: #ffffff;
     padding: 13px;
     border-radius: 16px;
     margin-bottom: 20px;
@@ -244,7 +249,7 @@
     background: #e1f0ff;
     border: 1px solid #b3d7ff;
     padding: 16px;
-    border-radius: 12px;
+    /* border-radius: 12px; */
     flex: 1;
     /* 남은 높이를 채우도록 설정 */
     display: flex;
@@ -411,7 +416,8 @@
 
 .preview-card {
     background: #fff;
-    border-radius: 24px;
+    border-radius: 0 !important;
+    /* 모서리 둥글기 제거 강제 적용 */
     padding: 24px 32px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
     border: 1px solid #edf1f5;
@@ -423,7 +429,7 @@
 
 .history-card {
     background: #fff;
-    border-radius: 24px;
+    /* border-radius: 24px; */
     padding: 24px 32px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
     /* border: 1px solid #edf1f5; */
@@ -446,7 +452,7 @@
 .preview-body {
     flex: 1;
     background: #f1f3f5;
-    border-radius: 16px;
+    /* border-radius: 16px; */
     margin-top: 16px;
     display: flex;
     align-items: center;
@@ -468,7 +474,7 @@
     max-height: 100%;
     object-fit: fill;
     /* 비율에 맞춰 강제로 늘리기 (이미지 변형됨) */
-    border-radius: 8px;
+    /* border-radius: 8px; */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     background-color: #f0f0f0;
     /* 이미지가 투명하거나 로딩 중일 때 영역 표시 */
@@ -533,6 +539,9 @@
     /* 위쪽 정렬 (여백 줄이기) */
     overflow-x: auto;
     flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    /* 부드러운 스크롤 (모바일/터치 대응) */
+    scroll-behavior: smooth;
 }
 
 .history-item {
@@ -552,6 +561,11 @@
     margin: 0 6px;
     position: relative;
     /* 돋보기 버튼 절대 위치 기준 */
+
+    /* 렌더링 최적화 */
+    will-change: transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
 .history-magnifier {

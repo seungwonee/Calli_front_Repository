@@ -13,6 +13,8 @@ const mailIcon = "http://localhost:3845/assets/24f0ebf3499e809f526383878fdf05ee3
 export default function MyPage({
     userName,
     userEmail,
+    userPhone = "010-0000-0000", // Default prop
+    onUpdateProfile,
     tokenCount = 0,
     setTokenCount,
     initialView = 'dashboard',
@@ -44,7 +46,11 @@ export default function MyPage({
         setCurrentView('dashboard');
     };
 
-    const handleEditSave = () => {
+    const handleEditSave = (newData) => {
+        // App.jsx로 업데이트 요청
+        if (onUpdateProfile) {
+            onUpdateProfile(newData);
+        }
         setCurrentView('dashboard');
     };
 
@@ -107,7 +113,13 @@ export default function MyPage({
     }
 
     if (currentView === 'edit') {
-        return <MyPageEdit userName={userName} onCancel={handleEditCancel} onSave={handleEditSave} />;
+        return <MyPageEdit
+            userName={userName}
+            userEmail={userEmail}
+            userPhone={userPhone}
+            onCancel={handleEditCancel}
+            onSave={handleEditSave}
+        />;
     }
 
     if (currentView === 'charge') {
@@ -159,7 +171,7 @@ export default function MyPage({
                         </div>
                         <div className="info-item">
                             <span className="info-label">휴대폰 번호</span>
-                            <span className="info-value">010-1234-5678</span>
+                            <span className="info-value">{userPhone}</span>
                         </div>
                         <div className="info-item">
                             <span className="info-label">보유 토큰</span>

@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import '../css/MyPageEdit.css';
 
-export default function MyPageEdit({ userName, onCancel, onSave, onWithdraw }) {
+export default function MyPageEdit({ userName, userEmail, userPhone, onCancel, onSave, onWithdraw }) {
     // 초기 데이터 설정 (userName에 따라 다르게 설정)
     const [formData, setFormData] = useState({
         userId: 'user1',
         password: '',
         passwordConfirm: '',
-        name: userName,
-        phone: '', // 기본값 비워둠 (선택사항)
-        email: ''
+        name: userName || '',
+        phone: userPhone || '',
+        email: userEmail || ''
     });
 
     const [showWithdrawModal, setShowWithdrawModal] = useState(false);
@@ -23,11 +23,11 @@ export default function MyPageEdit({ userName, onCancel, onSave, onWithdraw }) {
             setFormData(prev => ({
                 ...prev,
                 userId: 'user1',
-                email: '',
-                phone: '' // 사용자가 입력 안 했다고 가정
+                email: userEmail || '', // props 우선
+                phone: userPhone || ''
             }));
         }
-    }, [userName]);
+    }, [userName, userEmail, userPhone]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -43,7 +43,7 @@ export default function MyPageEdit({ userName, onCancel, onSave, onWithdraw }) {
 
         // 저장 로직 (API 호출 대신 알림)
         alert("회원 정보가 수정되었습니다.");
-        if (onSave) onSave();
+        if (onSave) onSave(formData);
     };
 
     const handleWithdrawClick = () => {
