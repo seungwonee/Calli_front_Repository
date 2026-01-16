@@ -255,16 +255,17 @@
     padding: 24px;
 }
 
-.info-row {
+.admin-info-row {
     display: flex;
     margin-bottom: 16px;
     align-items: center;
 }
 
-.info-row .label {
+.admin-info-row .label {
     width: 100px;
     color: #888;
     font-weight: 500;
+    text-align: left;
 }
 
 .content-box {

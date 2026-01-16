@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../css/LoginScreen.css';
+import client from '../api/client';
 
 // 디자인 및 슬라이드 자산 이미지 임포트
 import slide1 from '../assets/slide1.png';
@@ -31,7 +32,7 @@ export default function LoginScreen({ onGoHome, onFindAccount, onSignUp, onLogin
         return () => clearInterval(timer); // 언마운트 시 타이머 제거
     }, [slides.length]);
 
-    const handleLogin = (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault(); // 폼 제출 기본 동작 방지
 
         // 1. 빈 값 체크
@@ -40,18 +41,40 @@ export default function LoginScreen({ onGoHome, onFindAccount, onSignUp, onLogin
             return;
         }
 
-        // 2. 로그인 시뮬레이션
-        if (userId === 'admin' && userPw === 'admin') {
-            onLoginSuccess('admin'); // 관리자 로그인
-        } else if (userId === 'user1' && userPw === 'user123') {
-            setErrorMsg(''); // 에러 메시지 초기화
-            if (onLoginSuccess) {
-                onLoginSuccess('명수마을깡패'); // 로그인 성공 처리
-            } else {
-                console.error("onLoginSuccess prop is missing");
+        // 2. 실제 백엔드 로그인 요청
+        try {
+            // Spring Security formLogin은 x-www-form-urlencoded 방식을 선호하지만,
+            // 현재 설정(SecConfiugre)에서 usernameParameter 등을 설정했음.
+            // 그러나 client.js는 json content-type임.
+            // 백엔드가 JSON 로그인을 처리하려면 별도 필터가 필요하거나 formLogin을 커스텀해야 함.
+            // SecConfiugre.java를 보면 .loginProcessingUrl("/login") .usernameParameter("loginId") 등은
+            // 기본적으로 form-data를 기대함. 하지만 axios JSON 전송을 받으려면 커스텀 필터가 없으면 안될 수도 있음.
+            // 일단 x-www-form-urlencoded로 전송 시도.
+
+            const params = new URLSearchParams();
+            params.append('loginId', userId);
+            params.append('loginPw', userPw);
+
+            const response = await client.post('/login', params, {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            });
+
+            if (response.status === 200) {
+                // 성공
+                setErrorMsg('');
+                if (onLoginSuccess) {
+                    onLoginSuccess(response.data.user || userId); // 백엔드가 user 이름 리턴
+                }
             }
-        } else {
-            setErrorMsg("아이디 또는 비밀번호가 잘못되었습니다.");
+        } catch (error) {
+            console.error("Login failed:", error);
+            if (error.response && error.response.status === 401) {
+                setErrorMsg("아이디 또는 비밀번호가 잘못되었습니다.");
+            } else {
+                setErrorMsg("로그인 중 오류가 발생했습니다.");
+            }
         }
     };
 

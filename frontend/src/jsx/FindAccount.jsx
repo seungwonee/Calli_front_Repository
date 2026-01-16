@@ -17,6 +17,9 @@ export default function FindAccount({ onGoLogin }) {
     // 비밀번호 재설정 단계 여부 (PW 찾기 후 단계)
     const [isResetStage, setIsResetStage] = useState(false);
 
+    const [userName, setUserName] = useState('');
+    const [userEmail, setUserEmail] = useState('');
+
     // 입력 폼 상태 관리
     const [userId, setUserId] = useState('');
     const [idError, setIdError] = useState('');
@@ -38,6 +41,7 @@ export default function FindAccount({ onGoLogin }) {
     }, [slides.length]);
 
     // 아이디 입력 및 유효성 검사 핸들러
+    // 아이디 입력 및 유효성 검사 핸들러
     const handleIdChange = (e) => {
         const val = e.target.value;
         setUserId(val);
@@ -49,6 +53,9 @@ export default function FindAccount({ onGoLogin }) {
             setIdError('');
         }
     };
+
+    const handleNameChange = (e) => setUserName(e.target.value);
+    const handleEmailChange = (e) => setUserEmail(e.target.value);
 
     // 비밀번호 규칙 검사 (영문+숫자 8자 이상)
     const handlePwChange = (e) => {
@@ -89,6 +96,9 @@ export default function FindAccount({ onGoLogin }) {
     /**
      * 찾기 버튼 클릭 시 처리 (임시로 재설정 단계로 전환)
      */
+    /**
+     * 찾기 버튼 클릭 시 처리 (임시로 재설정 단계로 전환)
+     */
     const handleSubmit = (e) => {
         e.preventDefault();
 
@@ -100,6 +110,16 @@ export default function FindAccount({ onGoLogin }) {
         }
 
         if (recoveryType === 'pw' && !isResetStage) {
+            // [검증 로직] 아이디, 이름, 이메일이 모두 입력되었는지 확인 (버튼이 disabled여도 한 번 더 체크)
+            if (!userId || !userName || !userEmail) {
+                alert("아이디, 이름, 이메일을 모두 입력해주세요.");
+                return;
+            }
+
+            // TODO: 여기서 백엔드 API 호출하여 사용자 정보 확인 (아이디, 이름, 이메일 일치 여부)
+            // 성공 했다고 가정하고 다음 단계로 진행
+            // alert("사용자 정보를 확인했습니다. 비밀번호를 재설정해주세요.");
+
             setIsResetStage(true); // 비밀번호 찾기 1단계 성공 시 재설정 단계로 이동
             setNewPw(''); // 새 단계 진입 시 초기화
             setConfirmPw('');
@@ -118,7 +138,10 @@ export default function FindAccount({ onGoLogin }) {
     const handleTabChange = (type) => {
         setRecoveryType(type);
         setIsResetStage(false);
+        setIsResetStage(false);
         setUserId(''); // 탭 변경 시 입력 초기화
+        setUserName('');
+        setUserEmail('');
         setIdError('');
         setNewPw('');
         setConfirmPw('');
@@ -174,11 +197,23 @@ export default function FindAccount({ onGoLogin }) {
                                     )}
                                     <div className="input-group">
                                         <label htmlFor="recoveryName">이름</label>
-                                        <input type="text" id="recoveryName" placeholder="이름을 입력하세요" />
+                                        <input
+                                            type="text"
+                                            id="recoveryName"
+                                            placeholder="이름을 입력하세요"
+                                            value={userName}
+                                            onChange={handleNameChange}
+                                        />
                                     </div>
                                     <div className="input-group">
                                         <label htmlFor="recoveryEmail">이메일</label>
-                                        <input type="email" id="recoveryEmail" placeholder="이메일을 입력하세요" />
+                                        <input
+                                            type="email"
+                                            id="recoveryEmail"
+                                            placeholder="이메일을 입력하세요"
+                                            value={userEmail}
+                                            onChange={handleEmailChange}
+                                        />
                                     </div>
                                 </>
                             ) : (
@@ -218,7 +253,20 @@ export default function FindAccount({ onGoLogin }) {
                         </div>
 
                         {/* 실행 버튼 (전체 폼 높이가 고정되어 있어 버튼 위치는 항상 일정함) */}
-                        <button type="submit" className="recovery-submit-button">
+                        <button
+                            type="submit"
+                            className="recovery-submit-button"
+                            disabled={
+                                // 비밀번호 찾기 1단계(정보 입력)일 때, 3가지 정보 중 하나라도 없으면 비활성화
+                                (recoveryType === 'pw' && !isResetStage && (!userId || !userName || !userEmail)) ||
+                                // 비밀번호 재설정 단계일 때, 값이 없거나 에러가 있으면 비활성화 (선택적)
+                                (isResetStage && (!newPw || !confirmPw || pwError || matchError))
+                            }
+                            style={{
+                                opacity: (recoveryType === 'pw' && !isResetStage && (!userId || !userName || !userEmail)) ? 0.5 : 1,
+                                cursor: (recoveryType === 'pw' && !isResetStage && (!userId || !userName || !userEmail)) ? 'not-allowed' : 'pointer'
+                            }}
+                        >
                             {isResetStage ? '비밀번호 변경하기' : (recoveryType === 'id' ? '아이디 찾기' : '비밀번호 찾기')}
                         </button>
                     </form>

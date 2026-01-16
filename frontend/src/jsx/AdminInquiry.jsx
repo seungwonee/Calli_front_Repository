@@ -171,19 +171,19 @@ export default function AdminInquiry() {
                     </div>
 
                     <div className="detail-content-card">
-                        <div className="info-row">
+                        <div className="admin-info-row">
                             <span className="label" >제목</span>
                             <span className="value">{selectedInquiry.title}</span>
                         </div>
-                        <div className="info-row">
+                        <div className="admin-info-row">
                             <span className="label">작성자</span>
                             <span className="value">{selectedInquiry.author}</span>
                         </div>
-                        <div className="info-row">
+                        <div className="admin-info-row">
                             <span className="label">작성일</span>
                             <span className="value">{selectedInquiry.date}</span>
                         </div>
-                        <div className="info-row">
+                        <div className="admin-info-row">
                             <span className="label">상태</span>
                             <div className="value">{renderStatusBadge(selectedInquiry.status)}</div>
                         </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation, useParams, useSearchParams, Navigate } from 'react-router-dom';
+import client from '../api/client';
 import '../css/App.css';
 import MainScreen from './MainScreen';
 import LoginScreen from './LoginScreen';
@@ -225,14 +226,8 @@ function App() {
       setUserEmail('test@example.com');
       setUserPhone('010-1234-5678');
     } else {
-      // 일반 유저 기본값
-      setUserFreeDownloadCount(0);
-      setUserTokenCount(50);
-      // 일반 유저도 일단 빈 상태로 시작 (요청사항 반영)
-      setHistoryList([]);
-      setWishlistItems([]);
-      setUserEmail('이메일 없음');
-      setUserPhone('010-0000-0000');
+      // 일반 유저: 백엔드에서 최신 정보 가져오기
+      fetchMyData();
     }
 
     setIsLoggedIn(true);
@@ -251,6 +246,60 @@ function App() {
       setShowWelcomeModal(true);
     }
   };
+
+  // ✅ 사용자 정보 최신화 함수 (백엔드 연동)
+  const fetchMyData = async () => {
+    try {
+      const res = await client.get('/user/me');
+      if (res.status === 200 && res.data) {
+        const data = res.data;
+        // DB 데이터로 상태 업데이트
+        setUserName(data.userName || data.loginId);
+        setUserEmail(data.userEmail || '');
+        setUserPhone(data.userPhone || '');
+
+        // 토큰 및 크레딧
+        // DB의 balance/freeToken을 어떻게 매핑할지 결정
+        // 현재 프론트: userTokenCount, userFreeDownloadCount
+        // 백엔드: freeToken(무료횟수), balance(보유토큰?) 추정 (UserEntity 확인 결과: balance=int, freeToken=int)
+
+        setUserTokenCount(data.balance || 0);
+        setUserFreeDownloadCount(data.freeToken || 0);
+
+        // 2. 위시리스트 가져오기
+        try {
+          const wishRes = await client.get('/image/wishlist');
+          if (wishRes.status === 200 && wishRes.data) {
+            const mappedWishlist = wishRes.data.map(item => ({
+              id: item.wishlistId,
+              imageUrl: item.imgPath,
+              title: item.textPrompt || '제목 없음',
+              calliId: item.calliId,
+              createdAt: new Date().toISOString() // API에 날짜가 없으면 현재 시간
+            }));
+            setWishlistItems(mappedWishlist);
+          }
+        } catch (wErr) {
+          console.error("Failed to fetch wishlist:", wErr);
+        }
+
+        console.log("Fetched user data:", data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch user data:", err);
+      // 세션 만료 등의 이유로 실패 시 로그아웃 처리할 수도 있음
+    }
+  };
+
+  // 로그인 상태 복구 (새로고침 시)
+  useEffect(() => {
+    // 클라이언트 세션 쿠키가 있다고 가정하고 시도
+    fetchMyData().then(() => {
+      // 성공하면 isLoggedIn = true로 설정하는 로직이 필요할 수 있음
+      // 하지만 client.js가 401을 뱉으면 catch로 빠짐.
+      // 여기서는 간단히 '이미 로그인된 상태'라고 판단되면 데이터를 갱신하는 용도로 사용
+    });
+  }, []); // 마운트 시 1회 시도
 
   const handleLogout = () => {
     setIsLoggedIn(false);

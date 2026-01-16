@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import '../css/SignUp.css';
+import client from '../api/client';
 import { TERMS_OF_SERVICE, PRIVACY_POLICY } from './termsData';
 
 // 중복 체크를 위한 가상 사용자 데이터 (시뮬레이션용)
@@ -55,7 +56,7 @@ export default function SignUp({ onGoLogin }) {
     // 아이디 중복 확인 결과 상태
     const [idCheckResult, setIdCheckResult] = useState('');
 
-    const handleCheckId = () => {
+    const handleCheckId = async () => {
         if (!formData.userId) {
             setErrors(prev => ({ ...prev, userId: "아이디를 입력해주세요." }));
             return;
@@ -64,12 +65,23 @@ export default function SignUp({ onGoLogin }) {
             return;
         }
 
-        if (existingUsers.some(user => user.id === formData.userId)) {
-            setErrors(prev => ({ ...prev, userId: "이미 사용 중인 아이디입니다." }));
-            setIdCheckResult('');
-        } else {
+        try {
+            // 백엔드가 map.get("loginId")를 기대하므로 JSON으로 보냄
+            const response = await client.post('/user/checkid', { loginId: formData.userId });
+
+            // 200 OK -> 사용 가능
             setErrors(prev => ({ ...prev, userId: "" }));
-            setIdCheckResult("사용 가능한 아이디입니다.");
+            setIdCheckResult(response.data.msg || "사용 가능한 아이디입니다.");
+
+        } catch (error) {
+            console.error("Check ID failed:", error);
+            if (error.response && error.response.status === 400) {
+                // 400 Bad Request -> 이미 사용중
+                setErrors(prev => ({ ...prev, userId: "이미 사용 중인 아이디입니다." }));
+                setIdCheckResult('');
+            } else {
+                setErrors(prev => ({ ...prev, userId: "중복 확인 중 오류가 발생했습니다." }));
+            }
         }
     };
 
@@ -185,12 +197,30 @@ export default function SignUp({ onGoLogin }) {
         Object.values(errors).some(msg => msg !== "");
 
     // 폼 제출 핸들러
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (!isFormIncomplete && validateAll()) {
-            alert("회원가입이 완료되었습니다!");
-            onGoLogin();
+
+            // 백엔드 DTO에 맞게 필드 매핑
+            const joinData = {
+                loginId: formData.userId,
+                loginPw: formData.password,
+                userName: formData.name,
+                userEmail: formData.email,
+                userPhone: formData.phone
+            };
+
+            try {
+                const response = await client.post('/user/join', joinData);
+                if (response.status === 201 || response.status === 200) {
+                    alert("회원가입이 완료되었습니다!");
+                    onGoLogin();
+                }
+            } catch (error) {
+                console.error("Sign up failed:", error);
+                alert("회원가입 중 오류가 발생했습니다.\n" + (error.response?.data?.msg || error.message));
+            }
         }
     };
 

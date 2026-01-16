@@ -54,7 +54,7 @@
     gap: 8px;
     background: none;
     border: none;
-    color: #0d84d9;
+    color: #6366F1;
     font-size: 15px;
     font-weight: 600;
     cursor: pointer;
@@ -79,7 +79,7 @@
 .recovery-logo-text {
     font-family: "Audiowide", cursive;
     font-size: 42px;
-    color: #0d84d9;
+    color: #6366F1;
     margin-bottom: 8px;
 }
 
@@ -99,7 +99,7 @@
     flex: 1;
     height: 46px;
     border-radius: 23px;
-    border: 1px solid #0d84d9;
+    border: 1px solid #6366F1;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
@@ -109,12 +109,12 @@
 /* 비활성 탭: 배경 투명, 테두리만 */
 .tab-button:not(.active) {
     background: #fff;
-    color: #0d84d9;
+    color: #6366F1;
 }
 
 /* 활성 탭: 브랜드 컬러 배경 */
 .tab-button.active {
-    background: #0d84d9;
+    background: #6366F1;
     color: #fff;
 }
 
@@ -163,15 +163,15 @@
 }
 
 .input-group input:focus {
-    border-color: #0d84d9;
+    border-color: #6366F1;
     background: #fff;
-    box-shadow: 0 0 0 4px rgba(13, 132, 217, 0.1);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
 }
 
 /* 제출 버튼 */
 .recovery-submit-button {
     height: 54px;
-    background: #0d84d9;
+    background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
     color: #fff;
     border: none;
     border-radius: 15px;
@@ -183,7 +183,7 @@
 }
 
 .recovery-submit-button:hover {
-    background: #0b72bb;
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
     transform: translateY(-2px);
 }
 

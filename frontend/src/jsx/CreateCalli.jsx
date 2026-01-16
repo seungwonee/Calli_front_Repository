@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import client from '../api/client';
 import '../css/CreateCalli.css';
 import testImage1 from '../assets/slide1.png';
 import testImage2 from '../assets/slide2.png';
@@ -78,7 +79,7 @@ export default function CreateCalli({
     const handleBgPreset = (preset) => setBgStyle(preset);
 
 
-    const handleGenerate = () => {
+    const handleGenerate = async () => {
         // 무료 횟수 차감 또는 토큰 차감 로직 (App에서 받은 props 사용)
         if (freeCredits > 0) {
             setFreeCredits(prev => prev - 1);
@@ -96,26 +97,74 @@ export default function CreateCalli({
         setIsGenerating(true);
         setGeneratedImage(null);
 
-        setTimeout(() => {
-            setIsGenerating(false);
-            const randomImg = testImages[Math.floor(Math.random() * testImages.length)];
-            console.log("Generated Image Path:", randomImg);
-            setGeneratedImage(randomImg);
-            setLastGeneratedText(text);
-
-            // 로컬 히스토리 추가
-            const newHistoryItem = {
-                image: randomImg,
-                text: text,
-                style: styleInput,
-                bg: bgStyle,
-                ratio: selectedRatio,
-                // fastStyleId removed
+        try {
+            // 1. 생성 요청 요청
+            // DTO: textPrompt, stylePrompt, bgPrompt, size(Integer)
+            const payload = {
+                textPrompt: text,
+                stylePrompt: styleInput,
+                bgPrompt: bgStyle,
+                size: 1 // 임시: 1 (백엔드 로직에 맞춰 수정 필요, Mock에서는 상관없음)
             };
-            const newHistory = [newHistoryItem, ...history];
-            setHistory(newHistory);
-            localStorage.setItem('create_history', JSON.stringify(newHistory));
-        }, 1500); // 시간 단축
+
+            const res = await client.post('/image/generation', payload);
+            const calliId = res.data; // Calli ID 반환됨
+
+            console.log("Generation started, CalliID:", calliId);
+
+            // 2. 폴링 (Polling) - 이미지 생성 완료 확인
+            const pollInterval = setInterval(async () => {
+                try {
+                    const statusRes = await client.get(`/image/${calliId}/preview`);
+
+                    if (statusRes.status === 200) {
+                        // 생성 완료
+                        clearInterval(pollInterval);
+                        const imageUrl = statusRes.data.url; // PreviewResponseDto.url
+                        console.log("Image Generated:", imageUrl);
+
+                        setGeneratedImage(imageUrl);
+                        setLastGeneratedText(text);
+                        setIsGenerating(false);
+
+                        // 로컬 히스토리 추가
+                        const newHistoryItem = {
+                            image: imageUrl,
+                            text: text,
+                            style: styleInput,
+                            bg: bgStyle,
+                            ratio: selectedRatio,
+                        };
+                        const newHistory = [newHistoryItem, ...history];
+                        setHistory(newHistory);
+                        localStorage.setItem('create_history', JSON.stringify(newHistory));
+
+                    } else if (statusRes.status === 202) {
+                        // 생성 중... 계속 대기
+                        console.log("Generating...");
+                    }
+                } catch (err) {
+                    // 404 등 에러 발생 시
+                    if (err.response && err.response.status !== 202) {
+                        console.error("Polling error:", err);
+                        // 일정 횟수 이상 실패하면 중단하는 로직이 있으면 좋음
+                    }
+                }
+            }, 1000); // 1초마다 확인
+
+            // 안전장치: 30초 후에도 안되면 중단 (선택사항)
+            setTimeout(() => {
+                if (isGenerating) {
+                    clearInterval(pollInterval);
+                    // setIsGenerating(false); // 타임아웃 처리
+                }
+            }, 30000);
+
+        } catch (error) {
+            console.error("Generation request failed:", error);
+            alert("이미지 생성 요청 실패");
+            setIsGenerating(false);
+        }
     };
 
     const handleDownload = () => {
